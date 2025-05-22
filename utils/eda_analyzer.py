@@ -1,20 +1,3 @@
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import matplotlib.font_manager as fm
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import matplotlib.font_manager as fm
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 def plot_daily_close_price(df: pd.DataFrame):
     """
@@ -66,12 +49,16 @@ def plot_daily_close_price(df: pd.DataFrame):
     if not day_session_close.dropna().empty:
         fig.add_trace(go.Scatter(x=day_session_close.index, y=day_session_close.values,
                                  mode='lines', name='日盤',
-                                 line=dict(color='blue')))
+                                 line=dict(color='blue'),
+                                 hovertemplate='%{fullData.name}<br>時間: %{x}<br>價格: %{y:,.0f}<extra></extra>',
+                                 hoverlabel=dict(bgcolor="rgba(255, 255, 255, 0.7)", font_size=12, font_color="black")))
 
     if not night_session_close.dropna().empty:
         fig.add_trace(go.Scatter(x=night_session_close.index, y=night_session_close.values,
                                  mode='lines', name='夜盤',
-                                 line=dict(color='red')))
+                                 line=dict(color='red'),
+                                 hovertemplate='%{fullData.name}<br>時間: %{x}<br>價格: %{y:,.0f}<extra></extra>',
+                                 hoverlabel=dict(bgcolor="rgba(255, 255, 255, 0.7)", font_size=12, font_color="black")))
 
     # Add green rectangles for sessions with no data (holidays)
     shapes = []
@@ -129,8 +116,9 @@ def plot_daily_close_price(df: pd.DataFrame):
         xaxis_rangeslider_visible=True,
         xaxis_title='時間',
         yaxis_title='價格',
-        hovermode='x unified', # 統一顯示 hover 信息
-        height=600,
+        hovermode='closest', # 只顯示最接近滑鼠的數據點信息
+        height=700, # 再次增加高度
+        margin=dict(b=100), # 增加底部邊距
         xaxis=dict(
             rangeselector=dict(
                 buttons=list([
