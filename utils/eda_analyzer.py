@@ -1,3 +1,9 @@
+import pandas as pd
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import seaborn as sns
+import numpy as np
 
 def plot_daily_close_price(df: pd.DataFrame):
     """
@@ -40,6 +46,13 @@ def plot_daily_close_price(df: pd.DataFrame):
 
     # Create session-specific series, setting non-session times to NaN
     # Plotly will automatically break lines at NaN values
+    # Apply ffill before applying session masks to ensure continuity within sessions
+    # Create session-specific series, setting non-session times to NaN
+    # Plotly will automatically break lines at NaN values
+    # Create session-specific series, setting non-session times to NaN
+    # For continuity within sessions during flat price periods (e.g., limit up/down),
+    # we ffill and bfill *within* the session boundaries.
+    # This ensures lines are drawn for continuous flat prices without "filling" non-trading gaps.
     day_session_close = daily_close_resampled['close'].where(is_day_session)
     night_session_close = daily_close_resampled['close'].where(is_night_session)
 
@@ -156,25 +169,6 @@ def plot_daily_volume(df: pd.DataFrame):
     plt.gcf().autofmt_xdate()
     plt.show()
 
-def analyze_daily_volatility(df: pd.DataFrame):
-    """
-
-    Args:
-        df (pd.DataFrame): 包含 'volume' 欄位的 DataFrame，索引為時間。
-    """
-    plt.rcParams['font.family'] = ['Arial Unicode MS']
-    plt.rcParams['axes.unicode_minus'] = False
-
-    plt.figure(figsize=(12, 6))
-    daily_volume = df['volume'].resample('D').sum()
-    plt.bar(daily_volume.index, daily_volume.values, label='每日總成交量')
-    plt.title('每日總成交量變化圖')
-    plt.xlabel('時間')
-    plt.ylabel('成交量')
-    plt.legend()
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
-    plt.gcf().autofmt_xdate()
-    plt.show()
 
 def analyze_daily_volatility(df: pd.DataFrame):
     """
@@ -199,16 +193,17 @@ def plot_price_volume_distribution(df: pd.DataFrame):
 
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
-    sns.histplot(df['close'], kde=True)
+    sns.histplot(df['close'], kde=False) # 關閉KDE以提高速度
     plt.title('價格分佈')
     plt.xlabel('價格')
     plt.ylabel('頻率')
 
     plt.subplot(1, 2, 2)
-    sns.histplot(df['volume'], kde=True)
+    sns.histplot(df['volume'], kde=False, bins=100)
     plt.title('成交量分佈')
     plt.xlabel('成交量')
     plt.ylabel('頻率')
+    plt.yscale('log') # 將Y軸設置為對數刻度
     plt.tight_layout()
     plt.show()
 
