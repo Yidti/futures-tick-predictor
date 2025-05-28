@@ -162,29 +162,42 @@ def main():
 
         model_path = 'models/simple_model.pkl'
 
-        # 檢查模型是否存在，如果不存在則訓練一個
-        if not os.path.exists(model_path):
-            st.info("模型檔案不存在，正在訓練一個簡易模型...")
+        st.subheader("模型操作")
+        model_option = st.radio(
+            "選擇模型操作：",
+            ("訓練新模型", "使用既有模型"),
+            index=1 if os.path.exists(model_path) else 0 # 如果模型存在，預設為使用既有模型
+        )
+
+        model = None
+        if model_option == "訓練新模型":
+            st.info("正在訓練一個新的簡易模型...")
             # 確保用於訓練的資料包含目標欄位
             if target_label not in df_for_prediction.columns:
-                # 為了演示，如果範例資料沒有 target，則隨機生成一個
-                df_for_prediction[target_label] = (df_for_prediction['close'].diff().fillna(0) > 0).astype(int)
-                st.warning(f"範例資料中缺少 '{target_label}' 欄位，已自動生成用於模型訓練。")
+                # 為了演示，如果範例資料沒有 target，則根據 close 欄位變化自動生成 label
+                # 1: 上漲, -1: 下跌, 0: 不變
+                diff = df_for_prediction['close'].diff().fillna(0)
+                df_for_prediction[target_label] = diff.apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+                st.warning(f"範例資料中缺少 '{target_label}' 欄位，已根據收盤價變化自動生成用於模型訓練。")
 
             try:
                 train_and_save_simple_model(df_for_prediction, features_for_prediction, target_label, model_path)
                 st.success("簡易模型訓練並儲存完成！")
+                model = joblib.load(model_path) # 訓練後立即載入新模型
             except Exception as e:
                 st.error(f"模型訓練失敗: {e}")
                 st.stop() # 訓練失敗則停止 Streamlit 應用
-
-        # 載入模型
-        try:
-            model = joblib.load(model_path)
-            st.success("模型載入成功！")
-        except Exception as e:
-            st.error(f"載入模型失敗: {e}")
-            st.stop() # 載入失敗則停止 Streamlit 應用
+        elif model_option == "使用既有模型":
+            if os.path.exists(model_path):
+                try:
+                    model = joblib.load(model_path)
+                    st.success("既有模型載入成功！")
+                except Exception as e:
+                    st.error(f"載入既有模型失敗: {e}")
+                    st.stop() # 載入失敗則停止 Streamlit 應用
+            else:
+                st.warning("模型檔案不存在，請選擇 '訓練新模型' 或上傳資料以訓練模型。")
+                st.stop() # 模型不存在則停止 Streamlit 應用
 
         if st.button("執行預測"):
             if df_for_prediction is not None and not df_for_prediction.empty:
