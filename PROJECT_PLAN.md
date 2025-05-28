@@ -104,22 +104,22 @@
 
 ```mermaid
 graph TD
-    A[原始資料 .csv] --> B(資料準備與探索);
-    B -- 清洗與基礎特徵 --> Proto_M(簡易模型訓練);
-    Proto_M -- 簡易模型 --> Proto_API(簡易模型推論);
-    A_upload[上傳/範例資料] --> Proto_API;
-    Proto_API -- 簡易預測 --> Proto_UI(Streamlit 快速原型 UI);
+    A[原始資料 .csv] --> B[資料準備與探索];
+    B -- 清洗與基礎特徵 --> Proto_M[簡易模型訓練];
+    Proto_M -- 簡易模型 --> Proto_API[簡易模型推論];
+    A_upload[上傳 / 範例資料] --> Proto_API;
+    Proto_API -- 簡易預測 --> Proto_UI[Streamlit 快速原型 UI];
 
-    B -- 完整特徵工程 --> C{完整特徵資料集};
-    C -- 訓練/驗證/測試集 --> D(進階模型訓練模組);
-    D -- 訓練好的模型 (.pkl/.json) --> E(模型推論 API - 進階);
-    D -- 訓練好的模型 & 測試集 --> F(回測模組);
+    B -- 完整特徵工程 --> C[完整特徵資料集];
+    C -- 訓練 / 驗證 / 測試集 --> D[進階模型訓練模組];
+    D -- 訓練好的模型 (.pkl / .json) --> E[模型推論 API - 進階];
+    D -- 訓練好的模型 & 測試集 --> F[回測模組];
     C -- 測試集 --> F;
-    E -- 預測結果 & SHAP值 --> G(Streamlit 前端應用 - 完整功能);
+    E -- 預測結果 & SHAP 值 --> G[Streamlit 前端應用 - 完整功能];
     F -- 回測績效報告 --> G;
-    H[新進 Tick/分K 資料 (模擬/即時)] --> E;
+    H[新進 Tick / 分K 資料（模擬或即時）] --> E;
 
-    subgraph Iteration 1: Rapid Prototype
+    subgraph Iteration_1_Rapid_Prototype
         A
         B
         Proto_M
@@ -128,7 +128,7 @@ graph TD
         Proto_UI
     end
 
-    subgraph Iteration 2 onwards: Enhancement & Full Features
+    subgraph Iteration_2_onwards_Enhancement_and_Full_Features
         C
         D
         F
