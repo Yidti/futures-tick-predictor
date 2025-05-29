@@ -22,8 +22,14 @@ def main():
     model_operation = st.radio(
         "選擇模型操作：",
         ("訓練新模型", "使用既有模型進行預測"),
-        index=1 if os.path.exists('trained_models/simple_model.pkl') else 0  # 如果模型存在，預設為使用既有模型
+        index=1 # 預設為使用既有模型
     )
+
+    # 選擇既有模型的時候，則可以下拉式選單選擇資料夾的模型
+
+
+
+
 
     if model_operation == "訓練新模型":
         st.header("1. 資料載入 (訓練資料)")
@@ -142,16 +148,24 @@ def main():
                 st.error(f"模型訓練失敗: {e}")
                 st.stop() # 訓練失敗則停止 Streamlit 應用
         elif model_operation == "使用既有模型進行預測":
-            if os.path.exists(model_path):
-                try:
-                    model = joblib.load(model_path)
-                    st.success("既有模型載入成功！")
-                except Exception as e:
-                    st.error(f"載入既有模型失敗: {e}")
-                    st.stop() # 載入失敗則停止 Streamlit 應用
-            else:
-                st.warning("模型檔案不存在，請選擇 '訓練新模型' 或上傳資料以訓練模型。")
-                st.stop() # 模型不存在則停止 Streamlit 應用
+            # 列出 trained_models 資料夾下的所有 .pkl 模型
+            model_folder = 'trained_models'
+            model_files = [f for f in os.listdir(model_folder) if f.endswith('.pkl')]
+            
+            if not model_files:
+                st.warning("目前沒有已儲存的模型。請先訓練新模型。")
+                st.stop()
+
+            selected_model_file = st.selectbox("選擇模型檔案：", model_files)
+            model_path = os.path.join(model_folder, selected_model_file)
+
+            try:
+                model = joblib.load(model_path)
+                st.success(f"已載入模型：{selected_model_file}")
+            except Exception as e:
+                st.error(f"載入模型失敗: {e}")
+                st.stop()
+
 
             if df is not None:
                 try:

@@ -9,7 +9,7 @@ import os
 from utils.data_splitter import split_data
 from imblearn.over_sampling import RandomOverSampler  # pip install imbalanced-learn
 
-def train_and_save_simple_model(df: pd.DataFrame, features: list, target: str, model_path: str = 'trained_models/simple_model.pkl'):
+def train_and_save_simple_model(df: pd.DataFrame, features: list, target: str, file_name: str):
     """
     訓練一個以 RandomForest 為基底的三元分類模型，並儲存。
     同時示範如何針對少數類做過採樣 (oversampling)。
