@@ -71,3 +71,53 @@ def calculate_bollinger_bands(data: pd.Series, window: int = 20, num_std_dev: in
         'BB_Upper': upper_band,
         'BB_Lower': lower_band
     })
+
+def calculate_macd(data: pd.Series, fast_window: int = 12, slow_window: int = 26, signal_window: int = 9) -> pd.DataFrame:
+    """
+    計算移動平均收斂散度 (Moving Average Convergence Divergence, MACD)。
+
+    Args:
+        data: 輸入的 pandas Series (e.g., 收盤價)。
+        fast_window: 計算快速 EMA 的窗口大小 (預設為 12)。
+        slow_window: 計算慢速 EMA 的窗口大小 (預設為 26)。
+        signal_window: 計算訊號線 EMA 的窗口大小 (預設為 9)。
+
+    Returns:
+        包含 MACD 線、訊號線和柱狀圖的 pandas DataFrame。
+    """
+    ema_fast = data.ewm(span=fast_window, adjust=False).mean()
+    ema_slow = data.ewm(span=slow_window, adjust=False).mean()
+
+    macd_line = ema_fast - ema_slow
+    signal_line = macd_line.ewm(span=signal_window, adjust=False).mean()
+    histogram = macd_line - signal_line
+
+    return pd.DataFrame({
+        'MACD_Line': macd_line,
+        'Signal_Line': signal_line,
+        'MACD_Histogram': histogram
+    })
+
+def calculate_kd(data: pd.DataFrame, window: int = 9) -> pd.DataFrame:
+    """
+    計算隨機指標 (KDJ)。
+
+    Args:
+        data: 包含 High, Low, Close 欄位的 pandas DataFrame。
+        window: 計算窗口大小 (預設為 9)。
+
+    Returns:
+        包含 K 值和 D 值的 pandas DataFrame。
+    """
+    low_list = data['Low'].rolling(window=window).min()
+    high_list = data['High'].rolling(window=window).max()
+
+    rsv = ((data['Close'] - low_list) / (high_list - low_list)) * 100
+
+    k = rsv.ewm(span=3, adjust=False).mean()
+    d = k.ewm(span=3, adjust=False).mean()
+
+    return pd.DataFrame({
+        'K': k,
+        'D': d
+    })

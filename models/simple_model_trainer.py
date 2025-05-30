@@ -1,3 +1,5 @@
+# 檔案：models/simple_model_trainer.py
+
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
@@ -6,7 +8,7 @@ from sklearn.pipeline import Pipeline
 import joblib
 import os
 
-from utils.data_splitter import split_data
+from utils.data_splitter import split_data, timeseries_split  # 假設你已經把這個放到 utils/data_splitter.py
 from imblearn.over_sampling import RandomOverSampler  # pip install imbalanced-learn
 
 def train_and_save_simple_model(df: pd.DataFrame, features: list, target: str, file_name: str):
@@ -18,53 +20,55 @@ def train_and_save_simple_model(df: pd.DataFrame, features: list, target: str, f
         df (pd.DataFrame): 包含特徵和目標的 DataFrame。
         features (list): 特徵欄位名稱列表。
         target (str): 目標欄位名稱（-1, 0, 1）。
-        model_path (str): 模型儲存路徑。
+        file_name (str): 模型儲存路徑（例如 'trained_models/xxx_model.pkl'）。
     """
+    # ─── 使用傳入的 file_name 作為模型儲存路徑 ─────────────────────────────────────
+    model_save_path = file_name
+
     print(f"開始訓練三元分類模型（RandomForest），特徵: {features}, 目標: {target}")
 
-    # ----------------------------------------------------------------------
-    # 1. 先拆訓練/測試集
-    X_train, X_test, y_train, y_test = split_data(df, features, target)
+    # ─── 1. 時序切分（取最後一折作為測試集） ──────────────────────────────────
+    splits = timeseries_split(df, features, target, n_splits=5)
+    X_train, X_test, y_train, y_test = splits[-1]
 
-    # ----------------------------------------------------------------------
-    # 2. 對訓練集做過採樣 (只處理 X_train, y_train)
-    #    這裡用 RandomOverSampler，把 -1 與 1 兩個類別都重複取樣成跟 0 類一樣多
+    # ─── 2. 對訓練集做過採樣 (只處理 X_train, y_train) ────────────────────────────
     ros = RandomOverSampler(random_state=42)
     X_resampled, y_resampled = ros.fit_resample(X_train, y_train)
     print("◎ 過採樣後的 label 分佈：")
     print(pd.Series(y_resampled).value_counts())
 
-    # ----------------------------------------------------------------------
-    # 3. 建 pipeline（先 imputer 再 RandomForest）
+    # ─── 3. 建 pipeline（先 imputer 再 RandomForest）──────────────────────────────
     imputer = SimpleImputer(strategy='mean')
     rf = RandomForestClassifier(
         n_estimators=100,
         random_state=42,
-        class_weight='balanced_subsample'  # 再次平衡，雖然已經做過採樣，但保留防止偏差
+        class_weight='balanced_subsample'  # 再次平衡，即使已過採樣，仍保留防止偏差
     )
     model = Pipeline([
         ('imputer', imputer),
         ('classifier', rf)
     ])
 
-    # ----------------------------------------------------------------------
-    # 4. 訓練模型
+    # ─── 4. 訓練模型 ───────────────────────────────────────────────────────
     model.fit(X_resampled, y_resampled)
 
-    # ----------------------------------------------------------------------
-    # 5. 在測試集上評估
+    # ─── 5. 在測試集上評估 ───────────────────────────────────────────────────
     y_pred = model.predict(X_test)
     print("=== 測試集上的分類報告 (classification_report) ===")
     print(classification_report(y_test, y_pred, digits=4))
 
-    # ----------------------------------------------------------------------
-    # 6. 儲存模型
-    os.makedirs(os.path.dirname(model_path), exist_ok=True)
-    joblib.dump(model, model_path)
-    print(f"模型已成功儲存至: {model_path}")
+    # ─── 6. 儲存模型 ─────────────────────────────────────────────────────────
+    # 確保目錄存在
+    model_dir = os.path.dirname(model_save_path)
+    if model_dir:  # 如果有目錄路徑才創建
+        os.makedirs(model_dir, exist_ok=True)
+    
+    joblib.dump(model, model_save_path)
+    print(f"模型已成功儲存至: {model_save_path}")
+
 
 if __name__ == '__main__':
-    # 測試用範例資料 (實際請用真實 tick 時序資料)
+    # 如果要在這個檔案直接測試，請把下面範例資料拿掉或註解掉，並用真正的 tick 資料測試
     data = {
         'ts': pd.to_datetime([
             '2023-01-01 09:00:00', '2023-01-01 09:00:01', '2023-01-01 09:00:02',
@@ -98,4 +102,6 @@ if __name__ == '__main__':
     ]
     target_label = 'label'
 
-    train_and_save_simple_model(df, features_to_use, target_label)
+    # 測試時，把下面路徑改成你想存模型的地方：
+    model_file = './trained_models/test_model.pkl'
+    train_and_save_simple_model(df, features_to_use, target_label, model_file)
