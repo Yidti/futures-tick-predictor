@@ -550,7 +550,7 @@ graph TD
 ---
 
 **License:** MIT
-**Author:** (你的名字)
-**Contact:** (你的聯絡方式)
+**Author:** Yidti
+**Contact:** bonjour.luc@gmail.com
 
 EOF

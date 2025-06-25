@@ -20,7 +20,7 @@ def train_and_save_simple_model(df: pd.DataFrame, features: list, target: str, f
         df (pd.DataFrame): 包含特徵和目標的 DataFrame。
         features (list): 特徵欄位名稱列表。
         target (str): 目標欄位名稱（-1, 0, 1）。
-        file_name (str): 模型儲存路徑（例如 'trained_models/xxx_model.pkl'）。
+        file_name (str): 模型儲存路徑（例如 'models/trained_models/xxx_model.pkl'）。
     """
     # ─── 使用傳入的 file_name 作為模型儲存路徑 ─────────────────────────────────────
     model_save_path = file_name
@@ -103,5 +103,5 @@ if __name__ == '__main__':
     target_label = 'label'
 
     # 測試時，把下面路徑改成你想存模型的地方：
-    model_file = './trained_models/test_model.pkl'
+    model_file = './models/trained_models/test_model.pkl'
     train_and_save_simple_model(df, features_to_use, target_label, model_file)

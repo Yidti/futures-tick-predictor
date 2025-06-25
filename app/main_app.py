@@ -60,8 +60,8 @@ def main():
 
                 # 3. 產生 model_name 並確保資料夾存在
                 model_name = get_model_name(train_file)
-                os.makedirs('trained_models', exist_ok=True)
-                model_path = os.path.join('trained_models', model_name)
+                os.makedirs('models/trained_models', exist_ok=True)
+                model_path = os.path.join('models/trained_models', model_name)
 
                 # 列印出來確認一下（方便 debug）
                 st.write(f"model_name: {model_name}")
@@ -76,7 +76,7 @@ def main():
 
     # ------------------------- 「使用既有模型預測」 區段 -------------------------
     else:
-        model_dir = 'trained_models'
+        model_dir = 'models/trained_models'
         # 如果資料夾不存在或是裡面沒 .pkl，就提醒使用者先訓練
         if not os.path.isdir(model_dir):
             st.warning("尚未有任何訓練完成的模型，請先訓練一個。")
